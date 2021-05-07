@@ -18,40 +18,22 @@
 # pylint: disable=W0201  # attribute defined outside __init__
 # pylint: disable=R0916  # Too many boolean expressions in if statement
 
+# TODO: https://docs.python.org/3.7/library/pathlib.html#pathlib.Path.is_mount
 
-# TODO:
-#   https://github.com/kvesteri/validators
 import os
 import sys
-import click
 from pathlib import Path
-#from with_sshfs import sshfs
-#from with_chdir import chdir
-from retry_on_exception import retry_on_exception
-from enumerate_input import enumerate_input
-#from collections import defaultdict
-#from prettyprinter import cpprint, install_extras
-#install_extras(['attrs'])
-
-#from kcl.configops import click_read_config
-#from kcl.configops import click_write_config_entry
-
-#from kcl.userops import not_root
-#from kcl.pathops import path_is_block_special
-#from getdents import files
-#from prettytable import PrettyTable
-#output_table = PrettyTable()
-
-from typing import List
-from typing import Sequence
+from typing import ByteString
 from typing import Generator
 from typing import Iterable
-from typing import ByteString
+from typing import List
 from typing import Optional
+from typing import Sequence
 
-# click-command-tree
-#from click_plugins import with_plugins
-#from pkg_resources import iter_entry_points
+import click
+from enumerate_input import enumerate_input
+from psutil import disk_partitions
+
 
 def eprint(*args, **kwargs):
     if 'file' in kwargs.keys():
@@ -65,17 +47,6 @@ except ImportError:
     ic = eprint
 
 
-# import pdb; pdb.set_trace()
-# #set_trace(term_size=(80, 24))
-# from pudb import set_trace; set_trace(paused=False)
-
-##def log_uncaught_exceptions(ex_cls, ex, tb):
-##   eprint(''.join(traceback.format_tb(tb)))
-##   eprint('{0}: {1}'.format(ex_cls, ex))
-##
-##sys.excepthook = log_uncaught_exceptions
-
-
 def validate_slice(slice_syntax):
     assert isinstance(slice_syntax, str)
     for c in slice_syntax:
@@ -84,34 +55,54 @@ def validate_slice(slice_syntax):
     return slice_syntax
 
 
+def block_special_path_is_mounted(path,
+                                  verbose: bool,
+                                  debug: bool,
+                                  ):
+    assert path
+    path = Path(path)
+    assert isinstance(path, Path)
+    for mount in disk_partitions():
+        #print(mount)
+        if path.as_posix() in mount.device:
+            return True
+    return False
+
+
+def path_is_mounted(path,
+                    verbose: bool,
+                    debug: bool,
+                    ):  # todo test with angryfiles
+    assert path
+    path = Path(path)
+    assert isinstance(path, Path)
+    for mount in disk_partitions():
+        if verbose:
+            ic(mount)
+        if mount.mountpoint == path.as_posix():
+            return True
+    if os.path.ismount(path):
+        return True
+    return False
+
+
 #@with_plugins(iter_entry_points('click_command_tree'))
-#@click.group()
-#@click.option('--verbose', is_flag=True)
-#@click.option('--debug', is_flag=True)
-#@click.pass_context
-#def cli(ctx,
-#        verbose: bool,
-#        debug: bool,
-#        ):
-#
-#    ctx.ensure_object(dict)
-#    ctx.obj['verbose'] = verbose
-#    ctx.obj['debug'] = debug
+@click.group()
+@click.option('--verbose', is_flag=True)
+@click.option('--debug', is_flag=True)
+@click.pass_context
+def mounttool(ctx,
+              verbose: bool,
+              debug: bool,
+              ):
+
+    ctx.ensure_object(dict)
+    ctx.obj['verbose'] = verbose
+    ctx.obj['debug'] = debug
 
 
-# DONT CHANGE FUNC NAME
 @click.command()
 @click.argument("paths", type=str, nargs=-1)
-@click.argument("sysskel",
-                type=click.Path(exists=False,
-                                dir_okay=True,
-                                file_okay=False,
-                                path_type=str,
-                                allow_dash=False,),
-                nargs=1,
-                required=True,)
-@click.argument("slice_syntax", type=validate_slice, nargs=1)
-#@click.option('--add', is_flag=True)
 @click.option('--verbose', is_flag=True)
 @click.option('--debug', is_flag=True)
 @click.option('--simulate', is_flag=True)
@@ -123,19 +114,12 @@ def validate_slice(slice_syntax):
 @click.option("--printn", is_flag=True)
 #@click.option("--progress", is_flag=True)
 @click.pass_context
-def cli(ctx,
-        paths,
-        sysskel,
-        verbose: bool,
-        debug: bool,
-        simulate: bool,
-        ipython: bool,
-        count: bool,
-        skip: int,
-        head: int,
-        tail: int,
-        printn: bool,
-        ):
+def info(ctx,
+         paths,
+         verbose: bool,
+         debug: bool,
+         printn: bool,
+         ):
 
     null = not printn
     end = '\n'
@@ -143,11 +127,6 @@ def cli(ctx,
         end = '\x00'
     if sys.stdout.isatty():
         end = '\n'
-        assert not ipython
-
-    #progress = False
-    #if (verbose or debug):
-    #    progress = False
 
     ctx.ensure_object(dict)
     if verbose:
@@ -160,95 +139,22 @@ def cli(ctx,
     ctx.obj['end'] = end
     ctx.obj['null'] = null
     #ctx.obj['progress'] = progress
-    ctx.obj['count'] = count
-    ctx.obj['skip'] = skip
-    ctx.obj['head'] = head
-    ctx.obj['tail'] = tail
-
-    #global APP_NAME
-    #config, config_mtime = click_read_config(click_instance=click,
-    #                                         app_name=APP_NAME,
-    #                                         verbose=verbose,
-    #                                         debug=debug,)
-    #if verbose:
-    #    ic(config, config_mtime)
-
-    #if add:
-    #    section = "test_section"
-    #    key = "test_key"
-    #    value = "test_value"
-    #    config, config_mtime = click_write_config_entry(click_instance=click,
-    #                                                    app_name=APP_NAME,
-    #                                                    section=section,
-    #                                                    key=key,
-    #                                                    value=value,
-    #                                                    verbose=verbose,
-    #                                                    debug=debug,)
-    #    if verbose:
-    #        ic(config)
 
     iterator = paths
 
     for index, path in enumerate_input(iterator=iterator,
                                        null=null,
                                        progress=False,
-                                       skip=skip,
-                                       head=head,
-                                       tail=tail,
+                                       skip=None,
+                                       head=None,
+                                       tail=None,
                                        debug=debug,
                                        verbose=verbose,):
         path = Path(path)
 
         if verbose:  # or simulate:
             ic(index, path)
-        #if count:
-        #    if count > (index + 1):
-        #        ic(count)
-        #        sys.exit(0)
 
-        #if simulate:
-        #    continue
-
-        with open(path, 'rb') as fh:
-            path_bytes_data = fh.read()
-
-        if not count:
-            print(path, end=end)
-
-    if count:
-        print(index + 1, end=end)
-
-#        if ipython:
-#            import IPython; IPython.embed()
-
-#@cli.command()
-#@click.argument("urls", type=str, nargs=-1)
-#@click.option('--verbose', is_flag=True)
-#@click.option('--debug', is_flag=True)
-#@click.pass_context
-#def some_command(ctx,
-#                 urls,
-#                 verbose: bool,
-#                 debug: bool,
-#                 ):
-#    if verbose:
-#        ctx.obj['verbose'] = verbose
-#    verbose = ctx.obj['verbose']
-#    if debug:
-#        ctx.obj['debug'] = debug
-#    debug = ctx.obj['debug']
-#
-#    iterator = urls
-#    for index, url in enumerate_input(iterator=iterator,
-#                                      null=ctx.obj['null'],
-#                                      progress=ctx.obj['progress'],
-#                                      skip=ctx.obj['skip'],
-#                                      head=ctx.obj['head'],
-#                                      tail=ctx.obj['tail'],
-#                                      debug=ctx.obj['debug'],
-#                                      verbose=ctx.obj['verbose'],):
-#
-#        if ctx.obj['verbose']:
-#            ic(index, url)
-
+        ic(path_is_mounted(path=path, verbose=verbose, debug=debug))
+        ic(block_special_path_is_mounted(path=path, verbose=verbose, debug=debug))
 
