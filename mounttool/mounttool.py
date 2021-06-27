@@ -31,6 +31,7 @@ from typing import Optional
 from typing import Sequence
 
 import click
+import sh
 from enumerate_input import enumerate_input
 from psutil import disk_partitions
 
@@ -86,7 +87,34 @@ def path_is_mounted(path,
     return False
 
 
-#@with_plugins(iter_entry_points('click_command_tree'))
+def mount_something(path: Path,
+                    mount_type: str,
+                    source: Path,
+                    verbose: bool,
+                    debug: bool,
+                    ):
+
+    assert mount_type in ['proc', 'rbind']
+    if mount_type == 'rbind':
+        assert source
+        assert source.is_absolute()
+    assert isinstance(path, Path)
+    if source:
+        assert isinstance(source, Path)
+
+    if path_is_mounted(path, verbose=verbose, debug=debug,):
+        return
+
+    if mount_type == 'proc':
+        mount_command = sh.mount.bake('-t', 'proc', 'none', path)
+    elif mount_type == 'rbind':
+        mount_command = sh.mount.bake('-rbind', source.as_posix(), path)
+    else:
+        raise ValueError('unknown mount type: {}'.format(mount_type))
+
+    mount_command()
+
+
 @click.group()
 @click.option('--verbose', is_flag=True)
 @click.option('--debug', is_flag=True)
@@ -105,23 +133,14 @@ def mounttool(ctx,
 @click.argument("paths", type=str, nargs=-1)
 @click.option('--verbose', is_flag=True)
 @click.option('--debug', is_flag=True)
-@click.option('--simulate', is_flag=True)
-@click.option('--ipython', is_flag=True)
-@click.option('--count', is_flag=True)
-@click.option('--skip', type=int, default=False)
-@click.option('--head', type=int, default=False)
-@click.option('--tail', type=int, default=False)
-@click.option("--printn", is_flag=True)
-#@click.option("--progress", is_flag=True)
 @click.pass_context
 def info(ctx,
          paths,
          verbose: bool,
          debug: bool,
-         printn: bool,
          ):
 
-    null = not printn
+    null = not False
     end = '\n'
     if null:
         end = '\x00'
@@ -138,7 +157,6 @@ def info(ctx,
 
     ctx.obj['end'] = end
     ctx.obj['null'] = null
-    #ctx.obj['progress'] = progress
 
     iterator = paths
 
@@ -152,9 +170,8 @@ def info(ctx,
                                        verbose=verbose,):
         path = Path(path)
 
-        if verbose:  # or simulate:
+        if verbose:
             ic(index, path)
 
         ic(path_is_mounted(path=path, verbose=verbose, debug=debug))
         ic(block_special_path_is_mounted(path=path, verbose=verbose, debug=debug))
-
