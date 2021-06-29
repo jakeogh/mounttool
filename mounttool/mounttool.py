@@ -61,7 +61,7 @@ def block_special_path_is_mounted(path,
                                   debug: bool,
                                   ):
     assert path
-    path = Path(path)
+    path = Path(path).expanduser()
     assert isinstance(path, Path)
     for mount in disk_partitions():
         #print(mount)
@@ -75,7 +75,7 @@ def path_is_mounted(path,
                     debug: bool,
                     ):  # todo test with angryfiles
     assert path
-    path = Path(path)
+    path = Path(path).expanduser()
     assert isinstance(path, Path)
     for mount in disk_partitions():
         if verbose:
@@ -108,7 +108,7 @@ def mount_something(path: Path,
     if mount_type == 'proc':
         mount_command = sh.mount.bake('-t', 'proc', 'none', path)
     elif mount_type == 'rbind':
-        mount_command = sh.mount.bake('-rbind', source.as_posix(), path)
+        mount_command = sh.mount.bake('--rbind', source.as_posix(), path)
     else:
         raise ValueError('unknown mount type: {}'.format(mount_type))
 
@@ -168,7 +168,7 @@ def info(ctx,
                                        tail=None,
                                        debug=debug,
                                        verbose=verbose,):
-        path = Path(path)
+        path = Path(path).expanduser()
 
         if verbose:
             ic(index, path)
