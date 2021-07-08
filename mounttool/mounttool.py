@@ -32,9 +32,11 @@ from typing import Sequence
 
 import click
 import sh
+from asserttool import eprint
+from asserttool import ic
+from asserttool import validate_slice
 from enumerate_input import enumerate_input
 from psutil import disk_partitions
-from asserttool import eprint, ic, validate_slice
 
 
 def block_special_path_is_mounted(path,
@@ -74,20 +76,26 @@ def mount_something(path: Path,
                     verbose: bool,
                     debug: bool,
                     ):
+    if verbose:
+        ic(path, mount_type, source,)
 
-    assert mount_type in ['proc', 'rbind']
+    assert mount_type in ['proc', 'rbind', 'tmpfs']
     if mount_type == 'rbind':
         assert source
         assert source.is_absolute()
+
     assert isinstance(path, Path)
     if source:
         assert isinstance(source, Path)
 
-    if path_is_mounted(path, verbose=verbose, debug=debug,):
-        return
+    # lazy mistake
+    #if path_is_mounted(path, verbose=verbose, debug=debug,):
+    #    return
 
     if mount_type == 'proc':
         mount_command = sh.mount.bake('-t', 'proc', 'none', path)
+    elif mount_type == 'tmpfs':
+        mount_command = sh.mount.bake('-t', 'tmpfs', 'none', path)
     elif mount_type == 'rbind':
         mount_command = sh.mount.bake('--rbind', source.as_posix(), path)
     else:
