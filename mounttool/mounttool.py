@@ -70,34 +70,34 @@ def path_is_mounted(path,
     return False
 
 
-def mount_something(path: Path,
+def mount_something(mountpoint: Path,
                     mount_type: str,
                     source: Path,
                     verbose: bool,
                     debug: bool,
                     ):
     if verbose:
-        ic(path, mount_type, source,)
+        ic(mountpoint, mount_type, source,)
 
     assert mount_type in ['proc', 'rbind', 'tmpfs']
     if mount_type == 'rbind':
         assert source
         assert source.is_absolute()
 
-    assert isinstance(path, Path)
+    assert isinstance(mountpoint, Path)
     if source:
         assert isinstance(source, Path)
 
     # lazy mistake
-    #if path_is_mounted(path, verbose=verbose, debug=debug,):
+    #if mountpoint_is_mounted(mountpoint, verbose=verbose, debug=debug,):
     #    return
 
     if mount_type == 'proc':
-        mount_command = sh.mount.bake('-t', 'proc', 'none', path)
+        mount_command = sh.mount.bake('-t', 'proc', 'none', mountpoint)
     elif mount_type == 'tmpfs':
-        mount_command = sh.mount.bake('-t', 'tmpfs', 'none', path)
+        mount_command = sh.mount.bake('-t', 'tmpfs', 'none', mountpoint)
     elif mount_type == 'rbind':
-        mount_command = sh.mount.bake('--rbind', source.as_posix(), path)
+        mount_command = sh.mount.bake('--rbind', source.as_posix(), mountpoint)
     else:
         raise ValueError('unknown mount type: {}'.format(mount_type))
 
