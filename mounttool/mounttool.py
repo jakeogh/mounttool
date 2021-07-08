@@ -34,26 +34,7 @@ import click
 import sh
 from enumerate_input import enumerate_input
 from psutil import disk_partitions
-
-
-def eprint(*args, **kwargs):
-    if 'file' in kwargs.keys():
-        kwargs.pop('file')
-    print(*args, file=sys.stderr, **kwargs)
-
-
-try:
-    from icecream import ic  # https://github.com/gruns/icecream
-except ImportError:
-    ic = eprint
-
-
-def validate_slice(slice_syntax):
-    assert isinstance(slice_syntax, str)
-    for c in slice_syntax:
-        if c not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '[', ']', ':']:
-            raise ValueError(slice_syntax)
-    return slice_syntax
+from asserttool import eprint, ic, validate_slice
 
 
 def block_special_path_is_mounted(path,
