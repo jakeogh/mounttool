@@ -70,9 +70,10 @@ def path_is_mounted(path,
     return False
 
 
-def mount_something(mountpoint: Path,
+def mount_something(*,
+                    mountpoint: Path,
                     mount_type: str,
-                    source: Path,
+                    source: Optional[Path],
                     verbose: bool,
                     debug: bool,
                     ):
