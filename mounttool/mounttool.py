@@ -22,6 +22,7 @@
 
 import os
 import sys
+from math import inf
 from pathlib import Path
 from typing import ByteString
 from typing import Generator
@@ -34,14 +35,15 @@ import click
 import sh
 from asserttool import eprint
 from asserttool import ic
-from asserttool import validate_slice
-from enumerate_input import enumerate_input
+from asserttool import tv
+from clicktool import click_add_options
+from clicktool import click_global_options
 from psutil import disk_partitions
+from unmp import unmp
 
 
 def block_special_path_is_mounted(path,
-                                  verbose: bool,
-                                  debug: bool,
+                                  verbose: int,
                                   ):
     assert path
     path = Path(path).expanduser()
@@ -54,8 +56,7 @@ def block_special_path_is_mounted(path,
 
 
 def path_is_mounted(path,
-                    verbose: bool,
-                    debug: bool,
+                    verbose: int,
                     ):  # todo test with angryfiles
     assert path
     path = Path(path).expanduser()
@@ -74,8 +75,7 @@ def mount_something(*,
                     mountpoint: Path,
                     mount_type: str,
                     source: Optional[Path],
-                    verbose: bool,
-                    debug: bool,
+                    verbose: int,
                     ):
     if verbose:
         ic(mountpoint, mount_type, source,)
@@ -90,7 +90,7 @@ def mount_something(*,
         assert isinstance(source, Path)
 
     # lazy mistake
-    #if mountpoint_is_mounted(mountpoint, verbose=verbose, debug=debug,):
+    #if mountpoint_is_mounted(mountpoint, verbose=verbose, ):
     #    return
 
     if mount_type == 'proc':
@@ -106,62 +106,42 @@ def mount_something(*,
 
 
 @click.group()
-@click.option('--verbose', is_flag=True)
-@click.option('--debug', is_flag=True)
+@click_add_options(click_global_options)
 @click.pass_context
 def mounttool(ctx,
-              verbose: bool,
-              debug: bool,
+              verbose: int,
+              verbose_inf: bool,
               ):
 
-    ctx.ensure_object(dict)
-    ctx.obj['verbose'] = verbose
-    ctx.obj['debug'] = debug
+    tty, verbose = tv(ctx=ctx,
+                      verbose=verbose,
+                      verbose_inf=verbose_inf,
+                      )
 
 
 @click.command()
 @click.argument("paths", type=str, nargs=-1)
-@click.option('--verbose', is_flag=True)
-@click.option('--debug', is_flag=True)
+@click_add_options(click_global_options)
 @click.pass_context
 def info(ctx,
          paths,
-         verbose: bool,
-         debug: bool,
+         verbose: int,
+         verbose_inf: bool,
          ):
 
-    null = not False
-    end = '\n'
-    if null:
-        end = '\x00'
-    if sys.stdout.isatty():
-        end = '\n'
+    tty, verbose = tv(ctx=ctx,
+                      verbose=verbose,
+                      verbose_inf=verbose_inf,
+                      )
 
-    ctx.ensure_object(dict)
-    if verbose:
-        ctx.obj['verbose'] = verbose
-    verbose = ctx.obj['verbose']
-    if debug:
-        ctx.obj['debug'] = debug
-    debug = ctx.obj['debug']
+    if paths:
+        iterator = paths
+    else:
+        iterator = unmp(valid_types=[bytes,], verbose=verbose,)
 
-    ctx.obj['end'] = end
-    ctx.obj['null'] = null
-
-    iterator = paths
-
-    for index, path in enumerate_input(iterator=iterator,
-                                       null=null,
-                                       progress=False,
-                                       skip=None,
-                                       head=None,
-                                       tail=None,
-                                       debug=debug,
-                                       verbose=verbose,):
+    for index, path in enumerate(iterator):
         path = Path(path).expanduser()
-
         if verbose:
             ic(index, path)
-
-        ic(path_is_mounted(path=path, verbose=verbose, debug=debug))
-        ic(block_special_path_is_mounted(path=path, verbose=verbose, debug=debug))
+        ic(path_is_mounted(path=path, verbose=verbose,))
+        ic(block_special_path_is_mounted(path=path, verbose=verbose,))
