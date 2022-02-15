@@ -30,20 +30,21 @@ from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Sequence
+from typing import Union
 
 import click
 import sh
-from asserttool import eprint
 from asserttool import ic
-from asserttool import tv
 from clicktool import click_add_options
 from clicktool import click_global_options
+from clicktool import tv
+from eprint import eprint
 from psutil import disk_partitions
 from unmp import unmp
 
 
 def block_special_path_is_mounted(path,
-                                  verbose: int,
+                                  verbose: Union[bool, int, float],
                                   ):
     assert path
     path = Path(path).expanduser()
@@ -56,7 +57,7 @@ def block_special_path_is_mounted(path,
 
 
 def path_is_mounted(path,
-                    verbose: int,
+                    verbose: Union[bool, int, float],
                     ):  # todo test with angryfiles
     assert path
     path = Path(path).expanduser()
@@ -75,7 +76,7 @@ def mount_something(*,
                     mountpoint: Path,
                     mount_type: str,
                     source: Optional[Path],
-                    verbose: int,
+                    verbose: Union[bool, int, float],
                     ):
     if verbose:
         ic(mountpoint, mount_type, source,)
@@ -105,11 +106,11 @@ def mount_something(*,
     mount_command()
 
 
-@click.group()
+@click.group(no_args_is_help=True)
 @click_add_options(click_global_options)
 @click.pass_context
 def mounttool(ctx,
-              verbose: int,
+              verbose: Union[bool, int, float],
               verbose_inf: bool,
               ):
 
@@ -125,7 +126,7 @@ def mounttool(ctx,
 @click.pass_context
 def info(ctx,
          paths,
-         verbose: int,
+         verbose: Union[bool, int, float],
          verbose_inf: bool,
          ):
 
