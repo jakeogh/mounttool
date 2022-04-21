@@ -106,7 +106,8 @@ def mount_something(
     elif mount_type == "tmpfs":
         mount_command = sh.mount.bake("-t", "tmpfs", "none", mountpoint)
     elif mount_type == "rbind":
-        mount_command = sh.mount.bake("--rbind", source.as_posix(), mountpoint)
+        if source:
+            mount_command = sh.mount.bake("--rbind", source.as_posix(), mountpoint)
     else:
         raise ValueError("unknown mount type: {}".format(mount_type))
 
