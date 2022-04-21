@@ -21,13 +21,13 @@
 # TODO: https://docs.python.org/3.7/library/pathlib.html#pathlib.Path.is_mount
 
 import os
-import sys
+# import sys
 from math import inf
 from pathlib import Path
-from typing import ByteString
-from typing import Generator
-from typing import Iterable
-from typing import List
+# from typing import ByteString
+# from typing import Generator
+# from typing import Iterable
+# from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Union
@@ -38,27 +38,29 @@ from asserttool import ic
 from clicktool import click_add_options
 from clicktool import click_global_options
 from clicktool import tv
-from eprint import eprint
+from mptool import unmp
+# from eprint import eprint
 from psutil import disk_partitions
-from unmp import unmp
 
 
-def block_special_path_is_mounted(path,
-                                  verbose: Union[bool, int, float],
-                                  ):
+def block_special_path_is_mounted(
+    path,
+    verbose: Union[bool, int, float],
+):
     assert path
     path = Path(path).expanduser()
     assert isinstance(path, Path)
     for mount in disk_partitions():
-        #print(mount)
+        # print(mount)
         if path.as_posix() in mount.device:
             return True
     return False
 
 
-def path_is_mounted(path,
-                    verbose: Union[bool, int, float],
-                    ):  # todo test with angryfiles
+def path_is_mounted(
+    path,
+    verbose: Union[bool, int, float],
+):  # todo test with angryfiles
     assert path
     path = Path(path).expanduser()
     assert isinstance(path, Path)
@@ -72,17 +74,22 @@ def path_is_mounted(path,
     return False
 
 
-def mount_something(*,
-                    mountpoint: Path,
-                    mount_type: str,
-                    source: Optional[Path],
-                    verbose: Union[bool, int, float],
-                    ):
+def mount_something(
+    *,
+    mountpoint: Path,
+    mount_type: str,
+    source: Optional[Path],
+    verbose: Union[bool, int, float],
+):
     if verbose:
-        ic(mountpoint, mount_type, source,)
+        ic(
+            mountpoint,
+            mount_type,
+            source,
+        )
 
-    assert mount_type in ['proc', 'rbind', 'tmpfs']
-    if mount_type == 'rbind':
+    assert mount_type in ["proc", "rbind", "tmpfs"]
+    if mount_type == "rbind":
         assert source
         assert source.is_absolute()
 
@@ -91,17 +98,17 @@ def mount_something(*,
         assert isinstance(source, Path)
 
     # lazy mistake
-    #if mountpoint_is_mounted(mountpoint, verbose=verbose, ):
+    # if mountpoint_is_mounted(mountpoint, verbose=verbose, ):
     #    return
 
-    if mount_type == 'proc':
-        mount_command = sh.mount.bake('-t', 'proc', 'none', mountpoint)
-    elif mount_type == 'tmpfs':
-        mount_command = sh.mount.bake('-t', 'tmpfs', 'none', mountpoint)
-    elif mount_type == 'rbind':
-        mount_command = sh.mount.bake('--rbind', source.as_posix(), mountpoint)
+    if mount_type == "proc":
+        mount_command = sh.mount.bake("-t", "proc", "none", mountpoint)
+    elif mount_type == "tmpfs":
+        mount_command = sh.mount.bake("-t", "tmpfs", "none", mountpoint)
+    elif mount_type == "rbind":
+        mount_command = sh.mount.bake("--rbind", source.as_posix(), mountpoint)
     else:
-        raise ValueError('unknown mount type: {}'.format(mount_type))
+        raise ValueError("unknown mount type: {}".format(mount_type))
 
     mount_command()
 
@@ -109,40 +116,61 @@ def mount_something(*,
 @click.group(no_args_is_help=True)
 @click_add_options(click_global_options)
 @click.pass_context
-def mounttool(ctx,
-              verbose: Union[bool, int, float],
-              verbose_inf: bool,
-              ):
+def mounttool(
+    ctx,
+    verbose: Union[bool, int, float],
+    verbose_inf: bool,
+    dict_input: bool,
+):
 
-    tty, verbose = tv(ctx=ctx,
-                      verbose=verbose,
-                      verbose_inf=verbose_inf,
-                      )
+    tty, verbose = tv(
+        ctx=ctx,
+        verbose=verbose,
+        verbose_inf=verbose_inf,
+    )
 
 
 @click.command()
 @click.argument("paths", type=str, nargs=-1)
 @click_add_options(click_global_options)
 @click.pass_context
-def info(ctx,
-         paths,
-         verbose: Union[bool, int, float],
-         verbose_inf: bool,
-         ):
+def info(
+    ctx,
+    paths,
+    verbose: Union[bool, int, float],
+    verbose_inf: bool,
+    dict_input: bool,
+):
 
-    tty, verbose = tv(ctx=ctx,
-                      verbose=verbose,
-                      verbose_inf=verbose_inf,
-                      )
+    tty, verbose = tv(
+        ctx=ctx,
+        verbose=verbose,
+        verbose_inf=verbose_inf,
+    )
 
     if paths:
         iterator = paths
     else:
-        iterator = unmp(valid_types=[bytes,], verbose=verbose,)
+        iterator = unmp(
+            valid_types=[
+                bytes,
+            ],
+            verbose=verbose,
+        )
 
     for index, path in enumerate(iterator):
         path = Path(path).expanduser()
         if verbose:
             ic(index, path)
-        ic(path_is_mounted(path=path, verbose=verbose,))
-        ic(block_special_path_is_mounted(path=path, verbose=verbose,))
+        ic(
+            path_is_mounted(
+                path=path,
+                verbose=verbose,
+            )
+        )
+        ic(
+            block_special_path_is_mounted(
+                path=path,
+                verbose=verbose,
+            )
+        )
