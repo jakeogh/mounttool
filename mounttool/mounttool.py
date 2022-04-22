@@ -78,6 +78,7 @@ def mount_something(
     *,
     mountpoint: Path,
     mount_type: str,
+    slave: bool,
     source: Optional[Path],
     verbose: Union[bool, int, float],
 ):
@@ -88,8 +89,8 @@ def mount_something(
             source,
         )
 
-    assert mount_type in ["proc", "rbind", "tmpfs"]
-    if mount_type == "rbind":
+    assert mount_type in ["proc", "bind", "rbind", "tmpfs"]
+    if mount_type in ["bind", "rbind"]:
         assert source
         assert source.is_absolute()
 
@@ -101,17 +102,27 @@ def mount_something(
     # if mountpoint_is_mounted(mountpoint, verbose=verbose, ):
     #    return
 
+    slave_command = None
     if mount_type == "proc":
         mount_command = sh.mount.bake("-t", "proc", "none", mountpoint)
     elif mount_type == "tmpfs":
         mount_command = sh.mount.bake("-t", "tmpfs", "none", mountpoint)
+    elif mount_type == "bind":
+        if source:
+            mount_command = sh.mount.bake("--bind", source.as_posix(), mountpoint)
+            if slave:
+                slave_command = sh.mount.bake("--make-slave", mountpoint)
     elif mount_type == "rbind":
         if source:
             mount_command = sh.mount.bake("--rbind", source.as_posix(), mountpoint)
+            if slave:
+                slave_command = sh.mount.bake("--make-rslave", mountpoint)
     else:
         raise ValueError("unknown mount type: {}".format(mount_type))
 
     mount_command()
+    if slave_command:
+        slave_command()
 
 
 @click.group(no_args_is_help=True)
