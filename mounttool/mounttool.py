@@ -22,14 +22,14 @@
 
 import os
 # import sys
-from math import inf
+# from math import inf
 from pathlib import Path
+# from typing import Sequence
 # from typing import ByteString
 # from typing import Generator
 # from typing import Iterable
 # from typing import List
 from typing import Optional
-from typing import Sequence
 from typing import Union
 
 import click
@@ -118,7 +118,7 @@ def mount_something(
             if slave:
                 slave_command = sh.mount.bake("--make-rslave", mountpoint)
     else:
-        raise ValueError("unknown mount type: {}".format(mount_type))
+        raise ValueError(f"unknown mount type: {mount_type}")
 
     mount_command()
     if slave_command:
