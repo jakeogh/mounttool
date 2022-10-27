@@ -114,14 +114,14 @@ def mount_something(
         slave_command()
 
 
-@click.group(no_args_is_help=True)
+@click.group(no_args_is_help=True, cls=AHGroup)
 @click_add_options(click_global_options)
 @click.pass_context
 def mounttool(
     ctx,
     verbose: bool | int | float,
     verbose_inf: bool,
-    dict_input: bool,
+    dict_output: bool,
 ):
 
     tty, verbose = tv(
@@ -140,7 +140,7 @@ def info(
     paths,
     verbose: bool | int | float,
     verbose_inf: bool,
-    dict_input: bool,
+    dict_output: bool,
 ):
 
     tty, verbose = tv(
