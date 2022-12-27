@@ -35,7 +35,7 @@ from unmp import unmp
 
 def block_special_path_is_mounted(
     path,
-    verbose: bool | int | float,
+    verbose: bool | int | float = False,
 ):
     assert path
     path = Path(path).expanduser()
@@ -49,7 +49,7 @@ def block_special_path_is_mounted(
 
 def path_is_mounted(
     path,
-    verbose: bool | int | float,
+    verbose: bool | int | float = False,
 ):  # todo test with angryfiles
     assert path
     path = Path(path).expanduser()
@@ -70,7 +70,7 @@ def mount_something(
     mount_type: str,
     slave: bool,
     source: None | Path,
-    verbose: bool | int | float,
+    verbose: bool | int | float = False,
 ):
     if verbose:
         ic(
@@ -120,9 +120,9 @@ def mount_something(
 @click.pass_context
 def mounttool(
     ctx,
-    verbose: bool | int | float,
     verbose_inf: bool,
     dict_output: bool,
+    verbose: bool | int | float = False,
 ):
 
     tty, verbose = tv(
@@ -139,9 +139,9 @@ def mounttool(
 def info(
     ctx,
     paths,
-    verbose: bool | int | float,
     verbose_inf: bool,
     dict_output: bool,
+    verbose: bool | int | float = False,
 ):
 
     tty, verbose = tv(
