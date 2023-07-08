@@ -25,10 +25,12 @@ from pathlib import Path
 import click
 import sh
 from asserttool import ic
+from asserttool import icp
 from click_auto_help import AHGroup
 from clicktool import click_add_options
 from clicktool import click_global_options
 from clicktool import tv
+from globalverbose import gvd
 from psutil import disk_partitions
 from unmp import unmp
 
@@ -55,8 +57,7 @@ def path_is_mounted(
     path = Path(path).expanduser()
     assert isinstance(path, Path)
     for mount in disk_partitions():
-        if verbose:
-            ic(mount)
+        ic(mount)
         if mount.mountpoint == path.as_posix():
             return True
     if os.path.ismount(path):
@@ -72,12 +73,11 @@ def mount_something(
     source: None | Path,
     verbose: bool | int | float = False,
 ):
-    if verbose:
-        ic(
-            mountpoint,
-            mount_type,
-            source,
-        )
+    ic(
+        mountpoint,
+        mount_type,
+        source,
+    )
 
     assert mount_type in ["proc", "bind", "rbind", "tmpfs"]
     if mount_type in ["bind", "rbind"]:
@@ -89,7 +89,7 @@ def mount_something(
         assert isinstance(source, Path)
 
     # lazy mistake
-    # if mountpoint_is_mounted(mountpoint, verbose=verbose, ):
+    # if mountpoint_is_mounted(mountpoint,):
     #    return
 
     slave_command = None
@@ -124,12 +124,18 @@ def mounttool(
     dict_output: bool,
     verbose: bool | int | float = False,
 ):
-
     tty, verbose = tv(
         ctx=ctx,
         verbose=verbose,
         verbose_inf=verbose_inf,
     )
+    if not verbose:
+        ic.disable()
+    else:
+        ic.enable()
+
+    if verbose_inf:
+        gvd.enable()
 
 
 @click.command()
@@ -143,12 +149,18 @@ def info(
     dict_output: bool,
     verbose: bool | int | float = False,
 ):
-
     tty, verbose = tv(
         ctx=ctx,
         verbose=verbose,
         verbose_inf=verbose_inf,
     )
+    if not verbose:
+        ic.disable()
+    else:
+        ic.enable()
+
+    if verbose_inf:
+        gvd.enable()
 
     if paths:
         iterator = paths
@@ -157,22 +169,18 @@ def info(
             valid_types=[
                 bytes,
             ],
-            verbose=verbose,
         )
 
     for index, path in enumerate(iterator):
         path = Path(path).expanduser()
-        if verbose:
-            ic(index, path)
-        ic(
+        ic(index, path)
+        icp(
             path_is_mounted(
                 path=path,
-                verbose=verbose,
             )
         )
-        ic(
+        icp(
             block_special_path_is_mounted(
                 path=path,
-                verbose=verbose,
             )
         )
