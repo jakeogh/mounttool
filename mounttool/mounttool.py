@@ -29,7 +29,7 @@ from asserttool import icp
 from click_auto_help import AHGroup
 from clicktool import click_add_options
 from clicktool import click_global_options
-from clicktool import tv
+from clicktool import tvicgvd
 from globalverbose import gvd
 from psutil import disk_partitions
 from unmp import unmp
@@ -37,7 +37,7 @@ from unmp import unmp
 
 def block_special_path_is_mounted(
     path,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
     assert path
     path = Path(path).expanduser()
@@ -51,7 +51,7 @@ def block_special_path_is_mounted(
 
 def path_is_mounted(
     path,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):  # todo test with angryfiles
     assert path
     path = Path(path).expanduser()
@@ -71,7 +71,7 @@ def mount_something(
     mount_type: str,
     slave: bool,
     source: None | Path,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
     ic(
         mountpoint,
@@ -122,20 +122,15 @@ def mounttool(
     ctx,
     verbose_inf: bool,
     dict_output: bool,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
-    tty, verbose = tv(
+    tty, verbose = tvicgvd(
         ctx=ctx,
         verbose=verbose,
         verbose_inf=verbose_inf,
+        ic=ic,
+        gvd=gvd,
     )
-    if not verbose:
-        ic.disable()
-    else:
-        ic.enable()
-
-    if verbose_inf:
-        gvd.enable()
 
 
 @click.command()
@@ -147,20 +142,15 @@ def info(
     paths,
     verbose_inf: bool,
     dict_output: bool,
-    verbose: bool | int | float = False,
+    verbose: bool = False,
 ):
-    tty, verbose = tv(
+    tty, verbose = tvicgvd(
         ctx=ctx,
         verbose=verbose,
         verbose_inf=verbose_inf,
+        ic=ic,
+        gvd=gvd,
     )
-    if not verbose:
-        ic.disable()
-    else:
-        ic.enable()
-
-    if verbose_inf:
-        gvd.enable()
 
     if paths:
         iterator = paths
