@@ -42,7 +42,7 @@ def block_special_path_is_mounted(
     assert path
     path = Path(path).expanduser()
     path = path.resolve()
-    assert path_is_block_special(path)
+    assert path_is_block_special(path, symlink_ok=False)
     assert isinstance(path, Path)
     for mount in disk_partitions():
         # print(mount)
