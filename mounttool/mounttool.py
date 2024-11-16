@@ -31,16 +31,18 @@ from clicktool import click_add_options
 from clicktool import click_global_options
 from clicktool import tvicgvd
 from globalverbose import gvd
+from pathtool import path_is_block_special
 from psutil import disk_partitions
 from unmp import unmp
 
 
 def block_special_path_is_mounted(
     path,
-    verbose: bool = False,
 ):
     assert path
     path = Path(path).expanduser()
+    path = path.resolve()
+    assert path_is_block_special(path)
     assert isinstance(path, Path)
     for mount in disk_partitions():
         # print(mount)
@@ -51,10 +53,10 @@ def block_special_path_is_mounted(
 
 def path_is_mounted(
     path,
-    verbose: bool = False,
 ):  # todo test with angryfiles
     assert path
     path = Path(path).expanduser()
+    path = path.resolve()
     assert isinstance(path, Path)
     for mount in disk_partitions():
         ic(mount)
@@ -71,7 +73,6 @@ def mount_something(
     mount_type: str,
     slave: bool,
     source: None | Path,
-    verbose: bool = False,
 ):
     ic(
         mountpoint,
@@ -93,6 +94,7 @@ def mount_something(
     #    return
 
     slave_command = None
+    mount_command = None
     if mount_type == "proc":
         mount_command = sh.mount.bake("-t", "proc", "none", mountpoint)
     elif mount_type == "tmpfs":
@@ -110,7 +112,9 @@ def mount_something(
     else:
         raise ValueError(f"unknown mount type: {mount_type}")
 
-    mount_command()
+    assert mount_command
+    if mount_command:
+        mount_command()
     if slave_command:
         slave_command()
 
