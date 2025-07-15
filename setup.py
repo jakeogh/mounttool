@@ -23,11 +23,11 @@ config = {
     "zip_safe": False,
     "platforms": "any",
     "install_requires": dependencies,
-    "entry_points": {
-        "console_scripts": [
-            "mounttool=mounttool.mounttool:mounttool",
-        ],
-    },
+    # "entry_points": {
+    #    "console_scripts": [
+    #        "mounttool=mounttool.mounttool:mounttool",
+    #    ],
+    # },
 }
 
 setup(**config)
