@@ -7,8 +7,10 @@ from setuptools import setup
 import fastentrypoints
 
 dependencies = [
+    "sh",
     "psutil",
     "asserttool @ git+https://git@github.com/jakeogh/asserttool",
+    "pathtool @ git+https://git@github.com/jakeogh/pathtool",
 ]
 
 config = {
