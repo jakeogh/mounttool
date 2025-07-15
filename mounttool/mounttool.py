@@ -22,18 +22,19 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import click
+# import click
 import sh
 from asserttool import ic
-from asserttool import icp
-from click_auto_help import AHGroup
-from clicktool import click_add_options
-from clicktool import click_global_options
-from clicktool import tvicgvd
-from globalverbose import gvd
+# from asserttool import icp
+# from click_auto_help import AHGroup
+# from clicktool import click_add_options
+# from clicktool import click_global_options
+# from clicktool import tvicgvd
+# from globalverbose import gvd
 from pathtool import path_is_block_special
 from psutil import disk_partitions
-from unmp import unmp
+
+# from unmp import unmp
 
 
 def block_special_path_is_mounted(
@@ -80,8 +81,8 @@ def mount_something(
         source,
     )
 
-    assert mount_type in ["proc", "bind", "rbind", "tmpfs"]
-    if mount_type in ["bind", "rbind"]:
+    assert mount_type in {"proc", "bind", "rbind", "tmpfs"}
+    if mount_type in {"bind", "rbind"}:
         assert source
         assert source.is_absolute()
 
@@ -119,62 +120,62 @@ def mount_something(
         slave_command()
 
 
-@click.group(no_args_is_help=True, cls=AHGroup)
-@click_add_options(click_global_options)
-@click.pass_context
-def mounttool(
-    ctx,
-    verbose_inf: bool,
-    dict_output: bool,
-    verbose: bool = False,
-):
-    tty, verbose = tvicgvd(
-        ctx=ctx,
-        verbose=verbose,
-        verbose_inf=verbose_inf,
-        ic=ic,
-        gvd=gvd,
-    )
-
-
-@click.command()
-@click.argument("paths", type=str, nargs=-1)
-@click_add_options(click_global_options)
-@click.pass_context
-def info(
-    ctx,
-    paths,
-    verbose_inf: bool,
-    dict_output: bool,
-    verbose: bool = False,
-):
-    tty, verbose = tvicgvd(
-        ctx=ctx,
-        verbose=verbose,
-        verbose_inf=verbose_inf,
-        ic=ic,
-        gvd=gvd,
-    )
-
-    if paths:
-        iterator = paths
-    else:
-        iterator = unmp(
-            valid_types=[
-                bytes,
-            ],
-        )
-
-    for index, path in enumerate(iterator):
-        path = Path(path).expanduser()
-        ic(index, path)
-        icp(
-            path_is_mounted(
-                path=path,
-            )
-        )
-        icp(
-            block_special_path_is_mounted(
-                path=path,
-            )
-        )
+# @click.group(no_args_is_help=True, cls=AHGroup)
+# @click_add_options(click_global_options)
+# @click.pass_context
+# def mounttool(
+#    ctx,
+#    verbose_inf: bool,
+#    dict_output: bool,
+#    verbose: bool = False,
+# ):
+#    tty, verbose = tvicgvd(
+#        ctx=ctx,
+#        verbose=verbose,
+#        verbose_inf=verbose_inf,
+#        ic=ic,
+#        gvd=gvd,
+#    )
+#
+#
+# @click.command()
+# @click.argument("paths", type=str, nargs=-1)
+# @click_add_options(click_global_options)
+# @click.pass_context
+# def info(
+#    ctx,
+#    paths,
+#    verbose_inf: bool,
+#    dict_output: bool,
+#    verbose: bool = False,
+# ):
+#    tty, verbose = tvicgvd(
+#        ctx=ctx,
+#        verbose=verbose,
+#        verbose_inf=verbose_inf,
+#        ic=ic,
+#        gvd=gvd,
+#    )
+#
+#    if paths:
+#        iterator = paths
+#    else:
+#        iterator = unmp(
+#            valid_types=[
+#                bytes,
+#            ],
+#        )
+#
+#    for index, path in enumerate(iterator):
+#        path = Path(path).expanduser()
+#        ic(index, path)
+#        icp(
+#            path_is_mounted(
+#                path=path,
+#            )
+#        )
+#        icp(
+#            block_special_path_is_mounted(
+#                path=path,
+#            )
+#        )
