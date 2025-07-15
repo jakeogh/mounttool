@@ -6,7 +6,10 @@ from setuptools import setup
 
 import fastentrypoints
 
-dependencies = ["click"]
+dependencies = [
+    "psutil",
+    "asserttool @ git+https://git@github.com/jakeogh/asserttool",
+]
 
 config = {
     "version": "0.1",
